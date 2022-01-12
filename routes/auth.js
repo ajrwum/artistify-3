@@ -17,14 +17,37 @@ router.post(
   fileUploader.single("avatar"), //middleware to handle the decription of the req.body
   async (req, res, next) => {
     try {
-      console.log(req.body);
+      // getting all data from the form inputs
       const avatar = req.file ? req.file.path : undefined;
       const newUser = { ...req.body, avatar };
       console.log(newUser);
-      await User.create(newUser);
-      res.redirect("/dashboard");
-    } catch (error) {
-      next(error);
+
+      // looking for this user in db
+      const foundUser = await User.findOne({email: newUser.email});
+
+      if (foundUser) {
+        console.log("--- user found in db");
+        req.flash("warning", "Email already registered");
+        res.redirect("/auth/signin");
+      }
+      else {
+        console.log("--- user not found in db");
+        // hash + salt the password so it is not readable in db
+        const hashedPassword = bcrypt.hashSync(newUser.password, +process.env.SALT);
+        newUser.password = hashedPassword;
+        console.log(newUser);
+
+        await User.create(newUser);
+        res.redirect("/dashboard");
+      }
+    } catch (err) {
+      console.log('--- in the catch block', err)
+      let errorMessage = "";
+      for (field in err.errors) {
+        errorMessage += err.errors[field].message + "\n";
+      }
+      req.flash("error", errorMessage);
+      res.redirect("/auth/signup");
     }
   }
 );

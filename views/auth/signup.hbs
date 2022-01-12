@@ -1,6 +1,8 @@
 <h2> REGISTER </h2>
 
+
 <form action="/auth/signup" method="post" enctype="multipart/form-data">
+{{> flashMessage}}
 
   <label for="username"> Username :</label>
   <input type="text" id="username" name="username" />
@@ -17,3 +19,6 @@
   <button> Register </button>
 
 </form>
+<p>
+    Already got an account ? <a href="/auth/signin">signin</a>
+</p>
